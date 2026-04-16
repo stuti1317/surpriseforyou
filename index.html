@@ -523,8 +523,8 @@ body{
 <button class="btn-back" id="btn-back" onclick="goBack()">← Back</button>
 
 <!-- Audio -->
-<audio id="bg-audio" loop preload="none">
-  <source src="The_1975_-_About_You__Official_.mp3" type="audio/mpeg"/>
+<audio id="bg-audio" loop preload="auto">
+  <source src="The_1975_About_You.mp3" type="audio/mpeg"/>
 </audio>
 
 <!-- ══════════════════════════════════════
@@ -874,15 +874,43 @@ function startLanding(){
 /* ── Music ── */
 const audio=document.getElementById('bg-audio');
 let musicPlaying=false;
+
+function showMusicNudge(){
+  if(document.getElementById('music-nudge'))return;
+  const nudge=document.createElement('div');
+  nudge.id='music-nudge';
+  nudge.style.cssText='position:fixed;bottom:5rem;right:1.5rem;z-index:200;background:rgba(20,8,14,0.92);border:1px solid rgba(249,208,216,0.35);color:rgba(249,208,216,0.85);font-family:Cormorant Garamond,serif;font-size:.9rem;padding:.6rem 1.2rem;border-radius:100px;backdrop-filter:blur(12px);cursor:pointer;animation:pulse-soft 2s ease-in-out infinite;';
+  nudge.textContent='🎵 Tap to play music';
+  nudge.onclick=function(){
+    audio.play().then(()=>{
+      musicPlaying=true;
+      document.getElementById('music-icon').classList.remove('music-muted');
+      nudge.remove();
+    }).catch(()=>{});
+  };
+  document.body.appendChild(nudge);
+}
+
+function tryPlay(){
+  audio.play().then(()=>{
+    musicPlaying=true;
+    document.getElementById('music-icon').classList.remove('music-muted');
+    const n=document.getElementById('music-nudge');
+    if(n)n.remove();
+  }).catch(()=>{
+    musicPlaying=false;
+    document.getElementById('music-icon').classList.add('music-muted');
+    showMusicNudge();
+  });
+}
+
 window.toggleMusic=function(){
   const icon=document.getElementById('music-icon');
   if(musicPlaying){
     audio.pause();musicPlaying=false;
     icon.classList.add('music-muted');
   }else{
-    audio.play().catch(()=>{});
-    musicPlaying=true;
-    icon.classList.remove('music-muted');
+    tryPlay();
   }
 };
 
@@ -903,9 +931,7 @@ window.openExperience=function(){
   doTransition(()=>{
     document.getElementById('page-landing').style.display='none';
     document.getElementById('page-hub').style.display='flex';
-    audio.play().catch(()=>{});
-    musicPlaying=true;
-    document.getElementById('music-icon').classList.remove('music-muted');
+    tryPlay();
 
     setTimeout(()=>{
       const title=document.getElementById('hub-title');
